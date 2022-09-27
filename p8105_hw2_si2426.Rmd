@@ -1,0 +1,55 @@
+---
+title: "p8105_hw2_si2426"
+output: github_document
+date: "2022-09-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(readxl)
+```
+
+## Problem 1
+
+```{r loading_data, echo = FALSE}
+transit_df = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% janitor::clean_names() %>% select(line, station_name, station_latitude, station_longitude, route1:route11, entrance_type, entry, vending, ada) %>% mutate(entry = recode(entry, "YES" = TRUE, NO = FALSE))
+```
+
+```{r}
+head(transit_df, 5)
+```
+
+#WRITE SUMMARY PARGRAPH
+There are `r nrow(distinct(transit_df %>% group_by(line, station_name)))` distinct stations. `r nrow(transit_df %>% filter(ada == TRUE))` of the stations are ADA compliant. The proportion of entrances/exits without vending that allow entrance is `r round(nrow(transit_df %>% filter (vending == "NO", entry == TRUE))/nrow(transit_df %>% filter (vending == "NO")), 2)`.
+
+```{r data_reformat, include = FALSE}
+transit_df_reformat = transit_df %>% mutate(route8 = as.character(route8), route9 = as.character(route9), route10 = as.character(route10), route11 = as.character(route11)) %>% pivot_longer(route1:route11, names_to = "route_number", values_to = "route_name")
+```
+
+There are `r nrow(transit_df_reformat %>% filter(route_name == "A") %>% distinct(line, station_name))` distinct stations that serve the A train. Of the stations that serve the A train, `r nrow(transit_df_reformat %>% filter(route_name == "A", ada == "TRUE") %>% distinct(line, station_name))` are ADA compliant.
+
+
+## Problem 2
+
+```{r}
+mr_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% filter(!is.na(dumpster)) %>% mutate(sports_balls = as.integer(round(sports_balls)))
+head(mr_trash_df, 5)
+
+prof_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% filter(!is.na(dumpster)) %>% mutate(sports_balls = as.integer(round(sports_balls)))
+head(prof_trash_df, 5)
+```
+# COMBINE AND WRITE PARAGRAPH
+
+## Problem 3
+```{r}
+
+```
+
+
+
+
+
+
+
