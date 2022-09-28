@@ -36,11 +36,11 @@ There are `r nrow(transit_df_reformat %>% filter(route_name == "A") %>% distinct
 ## Problem 2
 
 ```{r}
-mr_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% filter(!is.na(dumpster)) %>% mutate(sports_balls = as.integer(round(sports_balls)))
-head(mr_trash_df, 5)
+mr_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% na.exclude(dumpster) %>% mutate(sports_balls = as.integer(round(sports_balls))) %>% mutate(dumpster = as.numeric(dumpster)) %>% mutate(type = "mr")
 
-prof_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% filter(!is.na(dumpster)) %>% mutate(sports_balls = as.integer(round(sports_balls)))
-head(prof_trash_df, 5)
+prof_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% filter(!is.na(dumpster)) %>% mutate(sports_balls = as.integer(round(sports_balls))) %>% mutate(type = "professor")
+
+bind_rows(mr_trash_df, prof_trash_df)
 ```
 # COMBINE AND WRITE PARAGRAPH
 
