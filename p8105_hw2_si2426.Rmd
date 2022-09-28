@@ -9,6 +9,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(dplyr)
 library(readxl)
+library(stringr)
+library(lubridate)
 ```
 
 ## Problem 1
@@ -44,7 +46,13 @@ head(prof_trash_df, 5)
 
 ## Problem 3
 ```{r}
+pols_month_df = read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% separate(col = mon, into= c("year", "month", "day")) %>%mutate(month = factor(month.name[(as.numeric(month))], levels = month.name)) %>% mutate(year = as.numeric(year)) %>% mutate(president = ifelse(prez_dem == 1, "dem", "gop")) %>% select(-c(prez_dem, prez_gop, day)) %>% arrange(year, month)
 
+snp_df = read_csv("./data/fivethirtyeight_datasets/snp.csv") %>% mutate(date = as.Date(date, format = "%m/%d/%y")) %>% separate(col = date, into = c("year", "month", "day")) %>% mutate(month = factor(month.name[(as.numeric(month))], levels = month.name)) %>% mutate(year = as.numeric(year)) %>% select(-c(day)) %>% arrange(year, month)
+
+unemployment_df = read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% janitor::clean_names() %>% pivot_longer(jan:dec, names_to = "month", values_to = "unemployment_rate") %>% mutate(month = str_to_sentence(month)) %>% mutate(month = factor(month, levels = month.abb, labels = month.name))
+
+left_join(pols_month_df, snp_df) %>% left_join(unemployment_df)
 ```
 
 
