@@ -1,7 +1,7 @@
 ---
 title: "p8105_hw2_si2426"
 output: github_document
-date: "2022-09-27"
+date: "2022-10-05"
 ---
 
 ```{r setup, include=FALSE}
@@ -34,28 +34,32 @@ There are `r nrow(transit_df_reformat %>% filter(route_name == "A") %>% distinct
 
 ## Problem 2
 
-Mr. Trash Wheel
+### Mr. Trash Wheel
 ```{r, message = FALSE}
-mr_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% na.omit(dumpster) %>% mutate(sports_balls = as.integer(round(sports_balls))) %>% mutate(dumpster = as.numeric(dumpster)) %>% mutate(type = "mr")
+mr_trash_df = read_excel("./data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% drop_na(dumpster) %>% mutate(sports_balls = as.integer(round(sports_balls))) %>% mutate(dumpster = as.numeric(dumpster)) %>% mutate(type = "mr") %>% mutate(year = as.numeric(year))
 ```
+We have cleaned the original data by altering some of the variables, removing rows that do not include dumpster-specific data, and rounding the number of sports balls collected. We have also added a `type` variable to indicate that the data belongs to Mr. Trash Wheel.
 
 ```{r}
 head(mr_trash_df, 5)
 ```
 
-Professor Trash Wheel
+### Professor Trash Wheel
 ```{r, message = FALSE}
-prof_trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% na.omit(dumpster) %>% mutate(sports_balls = as.integer(round(sports_balls))) %>% mutate(type = "professor")
+prof_trash_df = read_excel("./data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = cell_cols(c("A:M"))) %>% janitor::clean_names() %>% drop_na(dumpster) %>% mutate(sports_balls = as.integer(NA)) %>% mutate(type = "professor") %>% relocate(sports_balls, .before = homes_powered)
 ```
+We have cleaned the original data by altering some of the variables, removing rows that do not include dumpster-specific data, and adding a variable `sports_balls` to count the number of sports balls collected (this has been filled with missing values as the data has been removed in the updated data file). We have also added a `type` variable to indicate that the data belongs to Professor Trash Wheel.
 
 ```{r}
 head(prof_trash_df, 5)
 ```
 
-Combined Dataset
+### Combined Dataset
 ```{r, message = FALSE}
 combined_trash_df = bind_rows(mr_trash_df, prof_trash_df)
 ```
+
+We have combined the Mr. Trash Wheel and Professor Trash Wheel datasets to create a single tidy dataset.
 
 ```{r}
 head(combined_trash_df, 5)
@@ -66,19 +70,30 @@ The combined dataset contains `r nrow(combined_trash_df)` observations across bo
 
 ## Problem 3
 
-National Politicians
+### National Politicians
 ```{r, message = FALSE}
-pols_month_df = read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% separate(col = mon, into= c("year", "month", "day")) %>% mutate(month = factor(month.name[(as.numeric(month))], levels = month.name)) %>% mutate(year = as.numeric(year)) %>% mutate(president = ifelse(prez_dem == 1, "dem", "gop")) %>% select(-c(prez_dem, prez_gop, day)) %>% arrange(year, month)
+pols_month_df = read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% separate(col = mon, into = c("year", "month", "day")) %>% mutate(month = factor(month.name[(as.numeric(month))], levels = month.name)) %>% mutate(year = as.numeric(year)) %>% mutate(president = ifelse(prez_dem == 1, "dem", "gop")) %>% select(-c(prez_dem, prez_gop, day)) %>% arrange(year, month)
+```
+
+We cleaned the dataset by separating the `mon` variable into `year`, `month`, and `day` variables. We mutated the `month` variable so that it becomes a factor variable with levels based on the month name. We also made the `year` variable into a numeric variable. A new      `president` variable was added to specify which party the president belonged to at the time. Variables that were no longer needed were removed. Finally, the data was arranged by year and month order.
+
+It must be noted that there are several days in which the `prez_gop` variable takes a value of 2 which is larger than 1, as shown in the tibble below. These values occur between August 15, 1974 and December 15, 1974. This is possibly due to President Gerald Ford's oath of office, which occurred on August 9, 1974, as a result of President Richard Nixon's resignation.^[https://www.whitehouse.gov/about-the-white-house/presidents/gerald-r-ford/]
+
+```{r}
+read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% filter(prez_gop > 1 | prez_dem > 1)
 ```
 
 ```{r}
 head(pols_month_df, 5)
 ```
 
-Standard & Poor's Stock Market Index
+### Standard & Poor's Stock Market Index
 ```{r, message = FALSE}
 snp_df = read_csv("./data/fivethirtyeight_datasets/snp.csv") %>% mutate(date = as.Date(date, format = "%m/%d/%y")) %>% separate(col = date, into = c("year", "month", "day")) %>% mutate(month = factor(month.name[(as.numeric(month))], levels = month.name)) %>% mutate(year = as.numeric(year)) %>% select(-c(day)) %>% arrange(year, month)
 ```
+
+First, we coerced the `date` variable to a date object type. We cleaned the dataset by separating the `date` variable into `year`, `month`, and `day` variables. We mutated the `month` variable so that it becomes a factor variable with levels based on the month name. We also made the `year` variable into a numeric variable. Variables that were no longer needed were removed. Finally, the data was arranged by year and month order.
+
 
 ```{r}
 head(snp_df, 5)
@@ -86,16 +101,18 @@ head(snp_df, 5)
 
 Unemployment
 ```{r, message = FALSE}
-unemployment_df = read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% janitor::clean_names() %>% pivot_longer(jan:dec, names_to = "month", values_to = "unemployment_rate") %>% mutate(month = str_to_sentence(month)) %>% mutate(month = factor(month, levels = month.abb, labels = month.name))
+unemployment_df = read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% janitor::clean_names() %>% pivot_longer(jan:dec, names_to = "month", values_to = "unemployment_rate") %>% mutate(month = str_to_sentence(month)) %>% mutate(month = factor(month, levels = month.abb, labels = month.name)) %>% arrange(year, month)
 ```
+
+First, we cleaned the variable names. As the dataset was not tidy, we used `pivot_longer()` to create a row for each month, year observation. We mutated the `month` variable in two ways. First, we made the month abbrevation start with a capital letter as it was previously in lower case. Next, we coerced the month to a factor variable by month abbreviation, which we relabeled to the full month name. Finally, the data was arranged by year and month order.
 
 ```{r}
 head(unemployment_df, 5)
 ```
 
-Combined Dataset
+### Combined Dataset
 ```{r, message = FALSE}
-fiverthirtyeight_join_df = full_join(pols_month_df, snp_df) %>% full_join(unemployment_df)
+fiverthirtyeight_join_df = left_join(pols_month_df, snp_df) %>% left_join(unemployment_df)
 ```
 
 ```{r}
