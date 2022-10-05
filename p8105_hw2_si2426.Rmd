@@ -10,7 +10,6 @@ library(tidyverse)
 library(dplyr)
 library(readxl)
 library(stringr)
-library(lubridate)
 ```
 
 ## Problem 1
@@ -23,7 +22,7 @@ transit_df = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>
 head(transit_df, 5)
 ```
 
-#WRITE SUMMARY PARGRAPH
+The data is not yet tidy as there are quite a few cells with missing values. In order to minimize this, each route number and route should be independent variables.
 There are `r nrow(distinct(transit_df %>% group_by(line, station_name)))` distinct stations. `r nrow(transit_df %>% filter(ada == TRUE))` of the stations are ADA compliant. The proportion of entrances/exits without vending that allow entrance is `r round(nrow(transit_df %>% filter (vending == "NO", entry == TRUE))/nrow(transit_df %>% filter (vending == "NO")), 2)`.
 
 ```{r data_reformat, message = FALSE}
