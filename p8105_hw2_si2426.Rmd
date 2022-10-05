@@ -38,7 +38,7 @@ There are `r nrow(transit_df_reformat %>% filter(route_name == "A") %>% distinct
 ```{r, message = FALSE}
 mr_trash_df = read_excel("./data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols(c("A:N"))) %>% janitor::clean_names() %>% drop_na(dumpster) %>% mutate(sports_balls = as.integer(round(sports_balls))) %>% mutate(dumpster = as.numeric(dumpster)) %>% mutate(type = "mr") %>% mutate(year = as.numeric(year))
 ```
-We have cleaned the original data by altering some of the variables, removing rows that do not include dumpster-specific data, and rounding the number of sports balls collected. We have also added a `type` variable to indicate that the data belongs to Mr. Trash Wheel.
+We have cleaned the original data by altering some of the variables, removing rows that do not include dumpster-specific data, and rounding the number of sports balls collected. We have also added a `type` variable that takes a value of `mr` to indicate that the data belongs to Mr. Trash Wheel.
 
 ```{r}
 head(mr_trash_df, 5)
@@ -48,7 +48,7 @@ head(mr_trash_df, 5)
 ```{r, message = FALSE}
 prof_trash_df = read_excel("./data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = cell_cols(c("A:M"))) %>% janitor::clean_names() %>% drop_na(dumpster) %>% mutate(sports_balls = as.integer(NA)) %>% mutate(type = "professor") %>% relocate(sports_balls, .before = homes_powered)
 ```
-We have cleaned the original data by altering some of the variables, removing rows that do not include dumpster-specific data, and adding a variable `sports_balls` to count the number of sports balls collected (this has been filled with missing values as the data has been removed in the updated data file). We have also added a `type` variable to indicate that the data belongs to Professor Trash Wheel.
+We have cleaned the original data by altering some of the variables, removing rows that do not include dumpster-specific data, and adding a variable `sports_balls` to count the number of sports balls collected (this is currently filled with missing values as the data was removed in the updated data file). We have also added a `type` variable that takes a value of `professor` to indicate that the data belongs to Professor Trash Wheel.
 
 ```{r}
 head(prof_trash_df, 5)
@@ -65,7 +65,7 @@ We have combined the Mr. Trash Wheel and Professor Trash Wheel datasets to creat
 head(combined_trash_df, 5)
 ```
 
-The combined dataset contains `r nrow(combined_trash_df)` observations across both Mr. and Professor Trash Wheel. The key variables include the dumpster number, date of collection, weight of total litter per dumpster, and various types of litter collected. The types of litter include the following: plastic bottles, polystyrene, cigarette butts, glass bottles, grocery bags, chip bags, and sport balls. A variable specifying if a dumpster was Mr. Trash Wheel or Professor Trash Wheel has also been included to distinguish between the two types. The total weight of trash collected by Professor Trash Wheel was `r combined_trash_df %>% filter(type == "professor") %>% select(weight_tons) %>% colSums() %>% as.numeric` kg. The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r combined_trash_df %>% filter(type == "mr", year == 2020) %>% select(sports_balls) %>% colSums() %>% as.numeric` balls.
+The combined dataset contains `r nrow(combined_trash_df)` observations across both Mr. and Professor Trash Wheel. The key variables include the dumpster number (denoted `dumpster`), date of collection (denoted `date`), weight of total litter per dumpster (denoted `weight_tons`), and various types of litter collected. The types of litter include the following: plastic bottles, polystyrene, cigarette butts, glass bottles, grocery bags, chip bags, and sport balls. A variable `type` specifying if a dumpster was Mr. Trash Wheel or Professor Trash Wheel was also included to distinguish between the two types. The total weight of trash collected by Professor Trash Wheel was `r combined_trash_df %>% filter(type == "professor") %>% select(weight_tons) %>% colSums() %>% as.numeric` kg. The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r combined_trash_df %>% filter(type == "mr", year == 2020) %>% select(sports_balls) %>% colSums() %>% as.numeric` balls.
 
 
 ## Problem 3
@@ -77,14 +77,14 @@ pols_month_df = read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% s
 
 We cleaned the dataset by separating the `mon` variable into `year`, `month`, and `day` variables. We mutated the `month` variable so that it becomes a factor variable with levels based on the month name. We also made the `year` variable into a numeric variable. A new      `president` variable was added to specify which party the president belonged to at the time. Variables that were no longer needed were removed. Finally, the data was arranged by year and month order.
 
+```{r}
+head(pols_month_df, 5)
+```
+
 It must be noted that there are several days in which the `prez_gop` variable takes a value of 2 which is larger than 1, as shown in the tibble below. These values occur between August 15, 1974 and December 15, 1974. This is possibly due to President Gerald Ford's oath of office, which occurred on August 9, 1974, as a result of President Richard Nixon's resignation.^[https://www.whitehouse.gov/about-the-white-house/presidents/gerald-r-ford/]
 
 ```{r}
 read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% filter(prez_gop > 1 | prez_dem > 1)
-```
-
-```{r}
-head(pols_month_df, 5)
 ```
 
 ### Standard & Poor's Stock Market Index
@@ -92,19 +92,19 @@ head(pols_month_df, 5)
 snp_df = read_csv("./data/fivethirtyeight_datasets/snp.csv") %>% mutate(date = as.Date(date, format = "%m/%d/%y")) %>% separate(col = date, into = c("year", "month", "day")) %>% mutate(month = factor(month.name[(as.numeric(month))], levels = month.name)) %>% mutate(year = as.numeric(year)) %>% select(-c(day)) %>% arrange(year, month)
 ```
 
-First, we coerced the `date` variable to a date object type. We cleaned the dataset by separating the `date` variable into `year`, `month`, and `day` variables. We mutated the `month` variable so that it becomes a factor variable with levels based on the month name. We also made the `year` variable into a numeric variable. Variables that were no longer needed were removed. Finally, the data was arranged by year and month order.
+First, we coerced the `date` variable to a date object type. We cleaned the dataset by separating the `date` variable into `year`, `month`, and `day` variables (however, we later removed the `day` variable). We mutated the `month` variable so that it becomes a factor variable with levels based on the month name. We also made the `year` variable into a numeric variable. Variables that were no longer needed were removed. Finally, the data was arranged by year and month order.
 
 
 ```{r}
 head(snp_df, 5)
 ```
 
-Unemployment
+### Unemployment
 ```{r, message = FALSE}
 unemployment_df = read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% janitor::clean_names() %>% pivot_longer(jan:dec, names_to = "month", values_to = "unemployment_rate") %>% mutate(month = str_to_sentence(month)) %>% mutate(month = factor(month, levels = month.abb, labels = month.name)) %>% arrange(year, month)
 ```
 
-First, we cleaned the variable names. As the dataset was not tidy, we used `pivot_longer()` to create a row for each month, year observation. We mutated the `month` variable in two ways. First, we made the month abbrevation start with a capital letter as it was previously in lower case. Next, we coerced the month to a factor variable by month abbreviation, which we relabeled to the full month name. Finally, the data was arranged by year and month order.
+First, we cleaned the variable names. As the dataset was not tidy, we used `pivot_longer()` to create a row for each month-year observation combination. We mutated the `month` variable in two ways. First, we made the month abbrevation start with a capital letter as it was previously in lower case. Next, we coerced the month to a factor variable by month abbreviation, which we relabeled to the full month name. Finally, the data was arranged by year and month order.
 
 ```{r}
 head(unemployment_df, 5)
@@ -119,7 +119,7 @@ fiverthirtyeight_join_df = left_join(pols_month_df, snp_df) %>% left_join(unempl
 head(fiverthirtyeight_join_df, 5)
 ```
 
-The National Politicians dataset contains the number of politicians who are either Democrats or Republicans in a given period. The dataset contains `r ncol(pols_month_df)` variables, `r nrow(pols_month_df)` observations, and a range of `r (pols_month_df %>% select(year) %>% max()) - (pols_month_df %>% select(year) %>% min())` years. The key variables include the following: the year and month of a time period with the corresponding numbers of Republican and Democratic governors, senators, and representatives. It also notes the party of the President. The Standard & Poor's Stock Market Index dataset contains the number of observations related to the stock market. The dataset contains `r ncol(snp_df)` variables, `r nrow(snp_df)` observations, and a range of `r (snp_df %>% select(year) %>% max()) - (snp_df %>% select(year) %>% min())` years. The key variables include the following: the date and the closing value of the stock market index on that date. The unemployment dataset notes the unemployment rate at a given time. The dataset contains `r ncol(unemployment_df)` variables, `r nrow(unemployment_df)` observations, and a range of `r (unemployment_df %>% select(year) %>% max()) - (unemployment_df %>% select(year) %>% min())` years. The key variables include the following: the year, the month, and the associated unemployment rate. Using left joins to merge the datasets, the resulting dataset has `r ncol(fiverthirtyeight_join_df)` variables, `r nrow(fiverthirtyeight_join_df)` observations, and a range of `r fiverthirtyeight_join_df %>% select(year) %>% max() - fiverthirtyeight_join_df %>% select(year) %>% min()` years. The combined dataset contains every variable from each dataset mentioned above.
+The National Politicians dataset contains the number of politicians who are either Democrats or Republicans in a given period. The dataset contains `r ncol(pols_month_df)` variables, `r nrow(pols_month_df)` observations, and a range of `r (pols_month_df %>% select(year) %>% max()) - (pols_month_df %>% select(year) %>% min())` years. The key variables include the following: the `year` and `month` of a time period with the corresponding numbers of Republican and Democratic governors (denoted `gov_gop` and `gov_dem`, respectively), senators (denoted `sen_gop` and `sen_dem`, respectively), and representatives (denoted `rep_gop` and `rep_dem`, respectively). It also notes the party of the President (denoted `president`). The Standard & Poor's Stock Market Index dataset contains the closing value of the Standard & Poor's stock index at an associated time. The dataset contains `r ncol(snp_df)` variables, `r nrow(snp_df)` observations, and a range of `r (snp_df %>% select(year) %>% max()) - (snp_df %>% select(year) %>% min())` years. The key variables include the following: `year`, `month`, and `close` (the closing value of the stock market index on that date). The unemployment dataset notes the unemployment rate at a given time. The dataset contains `r ncol(unemployment_df)` variables, `r nrow(unemployment_df)` observations, and a range of `r (unemployment_df %>% select(year) %>% max()) - (unemployment_df %>% select(year) %>% min())` years. The key variables include the following: `year`, `month`, and `unemployment_rate`. Using left joins to merge the datasets, the resulting dataset has `r ncol(fiverthirtyeight_join_df)` variables, `r nrow(fiverthirtyeight_join_df)` observations, and a range of `r fiverthirtyeight_join_df %>% select(year) %>% max() - fiverthirtyeight_join_df %>% select(year) %>% min()` years. The combined dataset contains every variable from each dataset mentioned above. This includes, for example, `year`, `month`, `president`, `close`, `unemployment_rate`, among others.
 
 
 
